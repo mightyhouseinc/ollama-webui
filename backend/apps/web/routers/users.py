@@ -70,44 +70,37 @@ async def update_user_by_id(
             detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
         )
 
-    user = Users.get_user_by_id(user_id)
-
-    if user:
-        if form_data.email != user.email:
-            email_user = Users.get_user_by_email(form_data.email)
-            if email_user:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=ERROR_MESSAGES.EMAIL_TAKEN,
-                )
-
-        if form_data.password:
-            hashed = get_password_hash(form_data.password)
-            print(hashed)
-            Auths.update_user_password_by_id(user_id, hashed)
-
-        Auths.update_email_by_id(user_id, form_data.email)
-        updated_user = Users.update_user_by_id(
-            user_id,
-            {
-                "name": form_data.name,
-                "email": form_data.email,
-                "profile_image_url": form_data.profile_image_url,
-            },
-        )
-
-        if updated_user:
-            return updated_user
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=ERROR_MESSAGES.DEFAULT(),
-            )
-
-    else:
+    if not (user := Users.get_user_by_id(user_id)):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=ERROR_MESSAGES.USER_NOT_FOUND,
+        )
+    if form_data.email != user.email:
+        if email_user := Users.get_user_by_email(form_data.email):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ERROR_MESSAGES.EMAIL_TAKEN,
+            )
+
+    if form_data.password:
+        hashed = get_password_hash(form_data.password)
+        print(hashed)
+        Auths.update_user_password_by_id(user_id, hashed)
+
+    Auths.update_email_by_id(user_id, form_data.email)
+    if updated_user := Users.update_user_by_id(
+        user_id,
+        {
+            "name": form_data.name,
+            "email": form_data.email,
+            "profile_image_url": form_data.profile_image_url,
+        },
+    ):
+        return updated_user
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ERROR_MESSAGES.DEFAULT(),
         )
 
 
@@ -118,24 +111,20 @@ async def update_user_by_id(
 
 @router.delete("/{user_id}", response_model=bool)
 async def delete_user_by_id(user_id: str, user=Depends(get_current_user)):
-    if user.role == "admin":
-        if user.id != user_id:
-            result = Auths.delete_auth_by_id(user_id)
-
-            if result:
-                return True
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=ERROR_MESSAGES.DELETE_USER_ERROR,
-                )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=ERROR_MESSAGES.ACTION_PROHIBITED,
-            )
-    else:
+    if user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
+        )
+    if user.id == user_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=ERROR_MESSAGES.ACTION_PROHIBITED,
+        )
+    if result := Auths.delete_auth_by_id(user_id):
+        return True
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ERROR_MESSAGES.DELETE_USER_ERROR,
         )

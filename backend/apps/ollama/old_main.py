@@ -74,7 +74,7 @@ async def proxy(path: str, request: Request, user=Depends(get_current_user)):
     headers = dict(request.headers)
 
     if user.role in ["user", "admin"]:
-        if path in ["pull", "delete", "push", "copy", "create"]:
+        if path in {"pull", "delete", "push", "copy", "create"}:
             if user.role != "admin":
                 raise HTTPException(
                     status_code=401, detail=ERROR_MESSAGES.ACCESS_PROHIBITED

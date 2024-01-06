@@ -93,19 +93,14 @@ class AuthsTable:
 
         user = Users.insert_new_user(id, name, email, role)
 
-        if result and user:
-            return user
-        else:
-            return None
+        return user if result and user else None
 
     def authenticate_user(self, email: str, password: str) -> Optional[UserModel]:
         print("authenticate_user", email)
         try:
-            auth = Auth.get(Auth.email == email, Auth.active == True)
-            if auth:
+            if auth := Auth.get(Auth.email == email, Auth.active == True):
                 if verify_password(password, auth.password):
-                    user = Users.get_user_by_id(auth.id)
-                    return user
+                    return Users.get_user_by_id(auth.id)
                 else:
                     return None
             else:
@@ -118,7 +113,7 @@ class AuthsTable:
             query = Auth.update(password=new_password).where(Auth.id == id)
             result = query.execute()
 
-            return True if result == 1 else False
+            return result == 1
         except:
             return False
 
@@ -127,16 +122,13 @@ class AuthsTable:
             query = Auth.update(email=email).where(Auth.id == id)
             result = query.execute()
 
-            return True if result == 1 else False
+            return result == 1
         except:
             return False
 
     def delete_auth_by_id(self, id: str) -> bool:
         try:
-            # Delete User
-            result = Users.delete_user_by_id(id)
-
-            if result:
+            if result := Users.delete_user_by_id(id):
                 # Delete Auth
                 query = Auth.delete().where(Auth.id == id)
                 query.execute()  # Remove the rows, return number of rows removed.

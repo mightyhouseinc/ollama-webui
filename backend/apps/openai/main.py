@@ -88,10 +88,10 @@ async def proxy(path: str, request: Request, user=Depends(get_current_user)):
     # headers = dict(request.headers)
     # print(headers)
 
-    headers = {}
-    headers["Authorization"] = f"Bearer {app.state.OPENAI_API_KEY}"
-    headers["Content-Type"] = "application/json"
-
+    headers = {
+        "Authorization": f"Bearer {app.state.OPENAI_API_KEY}",
+        "Content-Type": "application/json",
+    }
     try:
         r = requests.request(
             method=request.method,
@@ -103,32 +103,30 @@ async def proxy(path: str, request: Request, user=Depends(get_current_user)):
 
         r.raise_for_status()
 
-        # Check if response is SSE
         if "text/event-stream" in r.headers.get("Content-Type", ""):
             return StreamingResponse(
                 r.iter_content(chunk_size=8192),
                 status_code=r.status_code,
                 headers=dict(r.headers),
             )
-        else:
-            # For non-SSE, read the response and return it
-            # response_data = (
-            #     r.json()
-            #     if r.headers.get("Content-Type", "")
-            #     == "application/json"
-            #     else r.text
-            # )
+        # For non-SSE, read the response and return it
+        # response_data = (
+        #     r.json()
+        #     if r.headers.get("Content-Type", "")
+        #     == "application/json"
+        #     else r.text
+        # )
 
-            response_data = r.json()
+        response_data = r.json()
 
-            print(type(response_data))
+        print(type(response_data))
 
-            if "openai" in app.state.OPENAI_API_BASE_URL and path == "models":
-                response_data["data"] = list(
-                    filter(lambda model: "gpt" in model["id"],
-                           response_data["data"]))
+        if "openai" in app.state.OPENAI_API_BASE_URL and path == "models":
+            response_data["data"] = list(
+                filter(lambda model: "gpt" in model["id"],
+                       response_data["data"]))
 
-            return response_data
+        return response_data
     except Exception as e:
         print(e)
         error_detail = "Ollama WebUI: Server Connection Error"

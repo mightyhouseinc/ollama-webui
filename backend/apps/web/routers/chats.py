@@ -65,9 +65,7 @@ async def create_new_chat(form_data: ChatForm, user=Depends(get_current_user)):
 
 @router.get("/{id}", response_model=Optional[ChatResponse])
 async def get_chat_by_id(id: str, user=Depends(get_current_user)):
-    chat = Chats.get_chat_by_id_and_user_id(id, user.id)
-
-    if chat:
+    if chat := Chats.get_chat_by_id_and_user_id(id, user.id):
         return ChatResponse(**{
             **chat.model_dump(), "chat": json.loads(chat.chat)
         })
@@ -85,8 +83,7 @@ async def get_chat_by_id(id: str, user=Depends(get_current_user)):
 async def update_chat_by_id(id: str,
                             form_data: ChatForm,
                             user=Depends(get_current_user)):
-    chat = Chats.get_chat_by_id_and_user_id(id, user.id)
-    if chat:
+    if chat := Chats.get_chat_by_id_and_user_id(id, user.id):
         updated_chat = {**json.loads(chat.chat), **form_data.chat}
 
         chat = Chats.update_chat_by_id(id, updated_chat)
@@ -107,8 +104,7 @@ async def update_chat_by_id(id: str,
 
 @router.delete("/{id}", response_model=bool)
 async def delete_chat_by_id(id: str, user=Depends(get_current_user)):
-    result = Chats.delete_chat_by_id_and_user_id(id, user.id)
-    return result
+    return Chats.delete_chat_by_id_and_user_id(id, user.id)
 
 
 ############################
@@ -118,5 +114,4 @@ async def delete_chat_by_id(id: str, user=Depends(get_current_user)):
 
 @router.delete("/", response_model=bool)
 async def delete_all_user_chats(user=Depends(get_current_user)):
-    result = Chats.delete_chats_by_user_id(user.id)
-    return result
+    return Chats.delete_chats_by_user_id(user.id)

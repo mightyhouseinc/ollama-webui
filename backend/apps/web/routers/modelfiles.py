@@ -44,9 +44,7 @@ async def create_new_modelfile(form_data: ModelfileForm,
             detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
         )
 
-    modelfile = Modelfiles.insert_new_modelfile(user.id, form_data)
-
-    if modelfile:
+    if modelfile := Modelfiles.insert_new_modelfile(user.id, form_data):
         return ModelfileResponse(
             **{
                 **modelfile.model_dump(),
@@ -68,9 +66,7 @@ async def create_new_modelfile(form_data: ModelfileForm,
 @router.post("/", response_model=Optional[ModelfileResponse])
 async def get_modelfile_by_tag_name(form_data: ModelfileTagNameForm,
                                     user=Depends(get_current_user)):
-    modelfile = Modelfiles.get_modelfile_by_tag_name(form_data.tag_name)
-
-    if modelfile:
+    if modelfile := Modelfiles.get_modelfile_by_tag_name(form_data.tag_name):
         return ModelfileResponse(
             **{
                 **modelfile.model_dump(),
@@ -97,8 +93,7 @@ async def update_modelfile_by_tag_name(form_data: ModelfileUpdateForm,
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
         )
-    modelfile = Modelfiles.get_modelfile_by_tag_name(form_data.tag_name)
-    if modelfile:
+    if modelfile := Modelfiles.get_modelfile_by_tag_name(form_data.tag_name):
         updated_modelfile = {
             **json.loads(modelfile.modelfile),
             **form_data.modelfile,
@@ -134,5 +129,4 @@ async def delete_modelfile_by_tag_name(form_data: ModelfileTagNameForm,
             detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
         )
 
-    result = Modelfiles.delete_modelfile_by_tag_name(form_data.tag_name)
-    return result
+    return Modelfiles.delete_modelfile_by_tag_name(form_data.tag_name)

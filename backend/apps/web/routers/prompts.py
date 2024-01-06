@@ -38,10 +38,8 @@ async def create_new_prompt(form_data: PromptForm,
         )
 
     prompt = Prompts.get_prompt_by_command(form_data.command)
-    if prompt == None:
-        prompt = Prompts.insert_new_prompt(user.id, form_data)
-
-        if prompt:
+    if prompt is None:
+        if prompt := Prompts.insert_new_prompt(user.id, form_data):
             return prompt
         else:
             raise HTTPException(
@@ -62,9 +60,7 @@ async def create_new_prompt(form_data: PromptForm,
 
 @router.get("/{command}", response_model=Optional[PromptModel])
 async def get_prompt_by_command(command: str, user=Depends(get_current_user)):
-    prompt = Prompts.get_prompt_by_command(f"/{command}")
-
-    if prompt:
+    if prompt := Prompts.get_prompt_by_command(f"/{command}"):
         return prompt
     else:
         raise HTTPException(
@@ -88,8 +84,7 @@ async def update_prompt_by_command(command: str,
             detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
         )
 
-    prompt = Prompts.update_prompt_by_command(f"/{command}", form_data)
-    if prompt:
+    if prompt := Prompts.update_prompt_by_command(f"/{command}", form_data):
         return prompt
     else:
         raise HTTPException(
@@ -112,5 +107,4 @@ async def delete_prompt_by_command(command: str,
             detail=ERROR_MESSAGES.ACCESS_PROHIBITED,
         )
 
-    result = Prompts.delete_prompt_by_command(f"/{command}")
-    return result
+    return Prompts.delete_prompt_by_command(f"/{command}")

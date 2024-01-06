@@ -85,7 +85,7 @@ class ChatTable:
         try:
             query = Chat.update(
                 chat=json.dumps(chat),
-                title=chat["title"] if "title" in chat else "New Chat",
+                title=chat.get("title", "New Chat"),
                 timestamp=int(time.time()),
             ).where(Chat.id == id)
             query.execute()
@@ -99,7 +99,7 @@ class ChatTable:
         try:
             query = Chat.update(
                 chat=json.dumps(chat),
-                title=chat["title"] if "title" in chat else "New Chat",
+                title=chat.get("title", "New Chat"),
                 timestamp=int(time.time()),
             ).where(Chat.id == id)
             query.execute()

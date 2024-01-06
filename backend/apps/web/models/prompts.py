@@ -64,11 +64,7 @@ class PromptsTable:
             })
 
         try:
-            result = Prompt.create(**prompt.model_dump())
-            if result:
-                return prompt
-            else:
-                return None
+            return prompt if (result := Prompt.create(**prompt.model_dump())) else None
         except:
             return None
 
