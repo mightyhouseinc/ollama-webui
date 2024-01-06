@@ -40,16 +40,14 @@ def create_token(data: dict, expires_delta: Union[timedelta, None] = None) -> st
 
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
-        payload.update({"exp": expire})
+        payload["exp"] = expire
 
-    encoded_jwt = jwt.encode(payload, JWT_SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=ALGORITHM)
 
 
 def decode_token(token: str) -> Optional[dict]:
     try:
-        decoded = jwt.decode(token, JWT_SECRET_KEY, options={"verify_signature": False})
-        return decoded
+        return jwt.decode(token, JWT_SECRET_KEY, options={"verify_signature": False})
     except Exception as e:
         return None
 
@@ -60,16 +58,15 @@ def extract_token_from_auth_header(auth_header: str):
 
 def get_current_user(auth_token: HTTPAuthorizationCredentials = Depends(HTTPBearer())):
     data = decode_token(auth_token.credentials)
-    if data != None and "email" in data:
-        user = Users.get_user_by_email(data["email"])
-        if user is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=ERROR_MESSAGES.INVALID_TOKEN,
-            )
-        return user
-    else:
+    if data is None or "email" not in data:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=ERROR_MESSAGES.UNAUTHORIZED,
         )
+    user = Users.get_user_by_email(data["email"])
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=ERROR_MESSAGES.INVALID_TOKEN,
+        )
+    return user

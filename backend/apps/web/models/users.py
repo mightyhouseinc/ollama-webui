@@ -69,11 +69,7 @@ class UsersTable:
                 "timestamp": int(time.time()),
             }
         )
-        result = User.create(**user.model_dump())
-        if result:
-            return user
-        else:
-            return None
+        return user if (result := User.create(**user.model_dump())) else None
 
     def get_user_by_id(self, id: str) -> Optional[UserModel]:
         try:
@@ -120,10 +116,7 @@ class UsersTable:
 
     def delete_user_by_id(self, id: str) -> bool:
         try:
-            # Delete User Chats
-            result = Chats.delete_chats_by_user_id(id)
-
-            if result:
+            if result := Chats.delete_chats_by_user_id(id):
                 # Delete User
                 query = User.delete().where(User.id == id)
                 query.execute()  # Remove the rows, return number of rows removed.

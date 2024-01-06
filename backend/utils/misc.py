@@ -25,6 +25,4 @@ def calculate_sha256(file):
 
 
 def validate_email_format(email: str) -> bool:
-    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-        return False
-    return True
+    return bool(re.match(r"[^@]+@[^@]+\.[^@]+", email))

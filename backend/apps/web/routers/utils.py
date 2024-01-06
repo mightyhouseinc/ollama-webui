@@ -33,9 +33,7 @@ def parse_huggingface_url(hf_url):
 
         # Extract the desired output
         user_repo = "/".join(path_components[1:3])
-        model_file = path_components[-1]
-
-        return model_file
+        return path_components[-1]
     except ValueError:
         return None
 
@@ -46,11 +44,7 @@ async def download_file_stream(url,
                                chunk_size=1024 * 1024):
     done = False
 
-    if os.path.exists(file_path):
-        current_size = os.path.getsize(file_path)
-    else:
-        current_size = 0
-
+    current_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
     headers = {"Range": f"bytes={current_size}-"} if current_size > 0 else {}
 
     timeout = aiohttp.ClientTimeout(total=600)  # Set the timeout
@@ -92,10 +86,7 @@ async def download_file_stream(url,
 
 @router.get("/download")
 async def download(url: str, ):
-    # url = "https://huggingface.co/TheBloke/stablelm-zephyr-3b-GGUF/resolve/main/stablelm-zephyr-3b.Q2_K.gguf"
-    file_name = parse_huggingface_url(url)
-
-    if file_name:
+    if file_name := parse_huggingface_url(url):
         os.makedirs("./uploads", exist_ok=True)
         file_path = os.path.join("./uploads", f"{file_name}")
 

@@ -66,25 +66,23 @@ class ModelfilesTable:
     def insert_new_modelfile(
             self, user_id: str,
             form_data: ModelfileForm) -> Optional[ModelfileModel]:
-        if "tagName" in form_data.modelfile:
-            modelfile = ModelfileModel(
-                **{
-                    "user_id": user_id,
-                    "tag_name": form_data.modelfile["tagName"],
-                    "modelfile": json.dumps(form_data.modelfile),
-                    "timestamp": int(time.time()),
-                })
+        if "tagName" not in form_data.modelfile:
+            return None
+        modelfile = ModelfileModel(
+            **{
+                "user_id": user_id,
+                "tag_name": form_data.modelfile["tagName"],
+                "modelfile": json.dumps(form_data.modelfile),
+                "timestamp": int(time.time()),
+            })
 
-            try:
-                result = Modelfile.create(**modelfile.model_dump())
-                if result:
-                    return modelfile
-                else:
-                    return None
-            except:
-                return None
-
-        else:
+        try:
+            return (
+                modelfile
+                if (result := Modelfile.create(**modelfile.model_dump()))
+                else None
+            )
+        except:
             return None
 
     def get_modelfile_by_tag_name(self,
